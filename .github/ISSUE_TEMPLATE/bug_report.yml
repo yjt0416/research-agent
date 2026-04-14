@@ -1,0 +1,49 @@
+name: Bug report
+description: Report a reproducible bug or regression
+title: "[Bug] "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. Please include enough detail for us to reproduce the problem.
+  - type: input
+    id: summary
+    attributes:
+      label: Summary
+      description: A short description of the problem
+      placeholder: The Python tool request fails with a 500 response
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: List the exact steps that trigger the issue
+      placeholder: |
+        1. Start the backend
+        2. Open the frontend
+        3. Submit ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      placeholder: The request should return a tool result and downloadable artifact
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      placeholder: The request fails with ...
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Share any relevant OS, Python, dependency, or deployment details
+      placeholder: Windows 11, Python 3.11, local FastAPI server

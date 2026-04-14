@@ -1,92 +1,100 @@
 # Research Agent Copilot
 
-A full-stack AI research assistant for document-grounded Q&A, report generation, safe tool usage, and downloadable output artifacts.
+![Research Agent Copilot cover](assets/research-agent-cover.svg)
 
-## Overview
+[![FastAPI](https://img.shields.io/badge/backend-FastAPI-0f766e?style=flat-square)](https://fastapi.tiangolo.com/)
+[![LangChain](https://img.shields.io/badge/orchestration-LangChain-1c7c54?style=flat-square)](https://www.langchain.com/)
+[![DeepSeek](https://img.shields.io/badge/model-DeepSeek-0f172a?style=flat-square)](https://www.deepseek.com/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-1d4ed8?style=flat-square)](LICENSE)
 
-Research Agent Copilot is a LangChain-centered agent application built for technical and research workflows. It combines:
+A full-stack AI research assistant for document-grounded Q&A, report generation, safe tool execution, and downloadable output artifacts.
 
-- Conversational chat over a DeepSeek-powered LLM
-- Retrieval-augmented generation over uploaded TXT, PDF, and DOCX files
-- Safe workspace tools for file reading and restricted Python execution
-- Human-in-the-loop confirmation for tool actions
+## Why This Project
+
+Research Agent Copilot is a practical agent app built around a simple idea: make research workflows feel as easy as chatting, while still keeping retrieval, tool usage, and output generation structured and safe.
+
+It combines:
+
+- Chat-style interaction powered by DeepSeek through LangChain
+- Retrieval-augmented generation over uploaded TXT, PDF, and DOCX documents
+- Guarded tools for file reading and restricted Python execution
+- Human-in-the-loop confirmation before sensitive actions
 - Downloadable outputs such as Markdown reports, Python files, and ZIP bundles
 
-The project is designed to feel like a practical product, not just a set of isolated demos. It includes a streamlined chat-style frontend, backend APIs, evaluation samples, and automated tests.
+## Highlights
 
-## Key Features
-
-- Chat-style frontend with a single entry point for asking questions, uploading files, and approving actions
-- LangChain-based orchestration using DeepSeek chat models, tool routing, and prompt templates
-- Semantic retrieval with multilingual sentence-transformer embeddings and Chroma vector storage
-- Safe Python tool with AST-based restrictions for simple calculations and code demos
-- Downloadable artifacts for generated reports and code outputs
-- Human confirmation workflow for potentially sensitive tool actions
-- Structured logging and retry logic for LLM requests
-- Built-in evaluation dataset summary endpoint for regression tracking
+- Single-page frontend designed around a clean chat experience
+- LangChain-centered workflow for chat, RAG, tool routing, and report generation
+- Semantic retrieval with multilingual sentence-transformer embeddings and Chroma
+- AST-restricted Python execution for simple, inspectable code tasks
+- Downloadable artifacts that make generated output easy to save and share
+- Structured retries, logging, evaluation utilities, and automated tests
 
 ## Architecture
 
 ```text
-Frontend (single-page chat UI)
-        |
-        v
+Frontend (chat UI)
+    |
+    v
 FastAPI backend
-        |
-        +-- LangChain chat / tool / report workflow
-        +-- RAG pipeline (text extraction -> chunking -> embeddings -> Chroma)
-        +-- Memory store (session history + user preferences)
-        +-- Artifact store (markdown / python / zip downloads)
-        +-- Confirmation store (approve / cancel tool execution)
+    |
+    +-- LangChain workflow orchestration
+    +-- RAG pipeline (extract -> chunk -> embed -> retrieve)
+    +-- Session memory and user preferences
+    +-- Tool execution with confirmation gates
+    +-- Artifact generation (md / py / zip)
+    +-- Evaluation and logging utilities
 ```
 
 ## Tech Stack
 
 - Backend: FastAPI
-- LLM / Agent framework: LangChain, langchain-deepseek
-- Vector store: Chroma
+- Agent framework: LangChain, langchain-deepseek
+- Vector database: Chroma
 - Embeddings: sentence-transformers, langchain-huggingface
-- Frontend: static HTML/CSS/JavaScript
+- Frontend: HTML, CSS, JavaScript
 - Testing: pytest
 
 ## Repository Layout
 
 ```text
 research-agent/
-|- backend/
-|  |- app/
-|  |  |- main.py
-|  |  |- agent.py
-|  |  |- rag.py
-|  |  |- llm.py
-|  |  |- tools.py
-|  |  |- artifacts.py
-|  |  |- confirmations.py
-|  |  |- evaluation.py
-|  |  |- logging_utils.py
-|  |  |- memory.py
-|  |  |- prompts.py
-|  |  |- schemas.py
-|  |  \- config.py
-|  \- requirements.txt
-|- frontend/
-|  \- index.html
-|- tests/
-|  \- test_api.py
-|- data/
-|  |- evals/
-|  |  \- day5_eval_dataset.jsonl
-|  |- processed/
-|  |  \- .gitkeep
-|  \- raw/
-|     |- .gitkeep
-|     \- sample_research_note.txt
-|- .env.example
-|- .gitignore
-\- README.md
+|-- backend/
+|   |-- app/
+|   |   |-- agent.py
+|   |   |-- artifacts.py
+|   |   |-- confirmations.py
+|   |   |-- config.py
+|   |   |-- evaluation.py
+|   |   |-- llm.py
+|   |   |-- logging_utils.py
+|   |   |-- main.py
+|   |   |-- memory.py
+|   |   |-- prompts.py
+|   |   |-- rag.py
+|   |   |-- schemas.py
+|   |   `-- tools.py
+|   `-- requirements.txt
+|-- data/
+|   |-- evals/
+|   |   `-- day5_eval_dataset.jsonl
+|   |-- processed/
+|   |   `-- .gitkeep
+|   `-- raw/
+|       |-- .gitkeep
+|       `-- sample_research_note.txt
+|-- frontend/
+|   `-- index.html
+|-- tests/
+|   `-- test_api.py
+|-- assets/
+|   `-- research-agent-cover.svg
+|-- CONTRIBUTING.md
+|-- LICENSE
+`-- README.md
 ```
 
-## Getting Started
+## Quick Start
 
 ### 1. Create a virtual environment
 
@@ -103,7 +111,7 @@ pip install -r backend\requirements.txt
 
 ### 3. Configure environment variables
 
-Copy `.env.example` to `.env` and fill in your DeepSeek API key:
+Copy `.env.example` to `.env` and add your DeepSeek API key.
 
 ```env
 DEEPSEEK_API_KEY=your_api_key_here
@@ -125,57 +133,34 @@ EMBEDDING_NORMALIZE=true
 uvicorn app.main:app --app-dir backend --reload
 ```
 
-Then open:
+Open:
 
 - `http://127.0.0.1:8000/`
 - `http://127.0.0.1:8000/docs`
 
 ## Core API Endpoints
 
-- `POST /chat`
-  Standard chat completion
-
-- `POST /documents/upload`
-  Upload TXT / PDF / DOCX documents into the RAG knowledge base
-
-- `POST /chat/rag`
-  Ask questions grounded in uploaded materials
-
-- `POST /agent/chat`
-  Unified entry point for chat, retrieval, report generation, and tool usage
-
-- `POST /agent/confirm/{token}`
-  Approve or cancel a pending tool action
-
-- `POST /tools/read-file`
-  Read a workspace file
-
-- `POST /tools/python`
-  Run restricted Python code
-
-- `GET /artifacts/{artifact_id}/download`
-  Download generated files
-
-- `GET /evaluation/dataset`
-  Inspect the built-in evaluation dataset summary
+| Endpoint | Purpose |
+| --- | --- |
+| `POST /chat` | Standard chat completion |
+| `POST /documents/upload` | Upload TXT, PDF, or DOCX files into the RAG store |
+| `POST /chat/rag` | Ask questions grounded in uploaded material |
+| `POST /agent/chat` | Unified entry point for chat, retrieval, reports, and tools |
+| `POST /agent/confirm/{token}` | Approve or cancel a pending tool action |
+| `POST /tools/read-file` | Read a workspace file |
+| `POST /tools/python` | Run restricted Python code |
+| `GET /artifacts/{artifact_id}/download` | Download generated output |
+| `GET /evaluation/dataset` | Inspect the bundled evaluation dataset |
 
 ## Example Workflows
 
-### Document-grounded summary
+### 1. Grounded document summary
 
-1. Upload `data/raw/sample_research_note.txt`
-2. Ask:
+1. Upload `data/raw/sample_research_note.txt`.
+2. Ask: `Please summarize the core idea of RAG and include citations.`
+3. Receive a grounded answer, retrieved source chunks, and a downloadable Markdown artifact.
 
-```text
-Please summarize the core idea of RAG and include citations.
-```
-
-3. Receive:
-- grounded answer
-- source chunks
-- downloadable Markdown artifact
-
-### Human-approved tool execution
+### 2. Human-approved Python execution
 
 Send:
 
@@ -189,7 +174,7 @@ Send:
 }
 ```
 
-The agent will pause and return a confirmation token. Then approve or cancel via:
+The agent pauses and returns a confirmation token. Approve or cancel it with:
 
 ```json
 POST /agent/confirm/{token}
@@ -198,29 +183,34 @@ POST /agent/confirm/{token}
 }
 ```
 
-## Testing
+## Development
 
-Run the automated tests with:
+Run the test suite:
 
 ```powershell
 pytest -q
 ```
 
-## Notes on What Is Intentionally Excluded
+Contribution guidelines live in [CONTRIBUTING.md](CONTRIBUTING.md). For larger changes, opening an issue before implementation is recommended.
 
-This repository is intentionally kept clean for source control:
+## Repository Hygiene
 
-- no local virtual environment
-- no runtime logs
-- no private `.env`
-- no personal learning notes
-- no generated vector store or memory artifacts
-- no duplicated uploaded files produced during local experimentation
+This repository is intentionally kept lightweight:
+
+- No local virtual environments or package caches
+- No private `.env` values
+- No runtime logs
+- No personal study notes or learning journals
+- No generated vector stores, memory dumps, or local experiment residue
 
 ## Roadmap
 
 - Streaming responses in the chat UI
-- Conversation history sidebar
-- More evaluation automation
-- Stronger artifact rendering and preview
-- Additional guarded tools for research workflows
+- Conversation history and session management
+- Richer artifact previews before download
+- Expanded evaluation coverage and automation
+- More guarded tools for research-heavy workflows
+
+## License
+
+This project is released under the [MIT License](LICENSE).

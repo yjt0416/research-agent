@@ -1,0 +1,36 @@
+name: Feature request
+description: Propose an improvement or new capability
+title: "[Feature] "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for sharing an idea. Clear problem statements help a lot.
+  - type: input
+    id: problem
+    attributes:
+      label: Problem to solve
+      description: What user or workflow problem should this address?
+      placeholder: Report outputs are downloadable, but not previewable before download
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe the ideal behavior or UX
+      placeholder: Add an artifact preview card inside the chat response
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Any workarounds or other approaches you considered
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Screenshots, examples, or links are welcome
