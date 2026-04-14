@@ -53,37 +53,37 @@ FastAPI backend
 
 ```text
 research-agent/
-├─ backend/
-│  ├─ app/
-│  │  ├─ main.py
-│  │  ├─ agent.py
-│  │  ├─ rag.py
-│  │  ├─ llm.py
-│  │  ├─ tools.py
-│  │  ├─ artifacts.py
-│  │  ├─ confirmations.py
-│  │  ├─ evaluation.py
-│  │  ├─ logging_utils.py
-│  │  ├─ memory.py
-│  │  ├─ prompts.py
-│  │  ├─ schemas.py
-│  │  └─ config.py
-│  └─ requirements.txt
-├─ frontend/
-│  └─ index.html
-├─ tests/
-│  └─ test_api.py
-├─ data/
-│  ├─ evals/
-│  │  └─ day5_eval_dataset.jsonl
-│  ├─ processed/
-│  │  └─ .gitkeep
-│  └─ raw/
-│     ├─ .gitkeep
-│     └─ sample_research_note.txt
-├─ .env.example
-├─ .gitignore
-└─ README.md
+|- backend/
+|  |- app/
+|  |  |- main.py
+|  |  |- agent.py
+|  |  |- rag.py
+|  |  |- llm.py
+|  |  |- tools.py
+|  |  |- artifacts.py
+|  |  |- confirmations.py
+|  |  |- evaluation.py
+|  |  |- logging_utils.py
+|  |  |- memory.py
+|  |  |- prompts.py
+|  |  |- schemas.py
+|  |  \- config.py
+|  \- requirements.txt
+|- frontend/
+|  \- index.html
+|- tests/
+|  \- test_api.py
+|- data/
+|  |- evals/
+|  |  \- day5_eval_dataset.jsonl
+|  |- processed/
+|  |  \- .gitkeep
+|  \- raw/
+|     |- .gitkeep
+|     \- sample_research_note.txt
+|- .env.example
+|- .gitignore
+\- README.md
 ```
 
 ## Getting Started
