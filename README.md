@@ -1,6 +1,6 @@
 # Research Agent Copilot
 
-![Research Agent Copilot cover](assets/research-agent-cover.svg)
+![Research Agent Copilot interface](assets/ui-screenshot.png)
 
 [![FastAPI](https://img.shields.io/badge/backend-FastAPI-0f766e?style=flat-square)](https://fastapi.tiangolo.com/)
 [![LangChain](https://img.shields.io/badge/orchestration-LangChain-1c7c54?style=flat-square)](https://www.langchain.com/)
@@ -88,7 +88,7 @@ research-agent/
 |-- tests/
 |   `-- test_api.py
 |-- assets/
-|   `-- research-agent-cover.svg
+|   `-- ui-screenshot.png
 |-- CONTRIBUTING.md
 |-- LICENSE
 `-- README.md
