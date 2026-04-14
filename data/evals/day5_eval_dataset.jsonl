@@ -1,0 +1,10 @@
+{"id":"chat-001","category":"chat","input":"请用三句话解释什么是 AI Agent","expected_route":"chat","expect_artifact":false,"notes":"基础聊天解释，适合零基础用户。"}
+{"id":"chat-002","category":"chat","input":"我已经学到 Day 4 了，接下来应该补哪些工程化能力？","expected_route":"chat","expect_artifact":false,"notes":"面向学习路径建议。"}
+{"id":"rag-001","category":"rag","input":"请根据已上传资料总结 RAG 的核心作用，并给出引用来源","expected_route":"rag","expect_artifact":true,"notes":"需要检索并返回带来源的总结。"}
+{"id":"rag-002","category":"rag","input":"根据这份实验手册，提炼出最重要的 3 个注意事项","expected_route":"rag","expect_artifact":true,"notes":"检索后归纳。"}
+{"id":"report-001","category":"report","input":"请根据文档生成一份结构化实验总结，包含 Summary、Key Findings、Next Steps","expected_route":"report","expect_artifact":true,"notes":"需要生成 Markdown 报告。"}
+{"id":"tool-001","category":"tool","input":"请读取文件 `README.md` 并用两句话概括","expected_route":"tool","expect_artifact":false,"notes":"文件读取工具路径。"}
+{"id":"tool-002","category":"tool","input":"请运行这段 Python 代码 ```python\nvalue = sum([2, 4, 8])\nprint(value)\n``` 并解释结果","expected_route":"tool","expect_artifact":true,"notes":"Python 工具路径，应该生成代码与压缩包产物。"}
+{"id":"confirm-001","category":"confirmation","input":"请读取文件 `README.md` 并告诉我它的核心内容","expected_route":"tool","expect_artifact":false,"require_confirmation":true,"notes":"用于验证人工确认流程。"}
+{"id":"confirm-002","category":"confirmation","input":"请运行这段 Python 代码 ```python\nprint(sum([10, 20, 30]))\n```","expected_route":"tool","expect_artifact":true,"require_confirmation":true,"notes":"先暂停，再由人工批准。"}
+{"id":"fallback-001","category":"fallback","input":"我上传资料了吗？如果没有请提醒我下一步怎么做","expected_route":"chat","expect_artifact":false,"notes":"RAG 无上下文时应平稳退回普通聊天说明。"}

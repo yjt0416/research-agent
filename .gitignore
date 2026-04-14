@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+
+# Virtual environments
+.venv/
+venv/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Runtime logs
+*.log
+uvicorn*.log
+
+# Generated data
+data/processed/*
+!data/processed/.gitkeep
+
+# Local uploaded files: keep only the curated sample
+data/raw/*
+!data/raw/.gitkeep
+!data/raw/sample_research_note.txt
+
+# Learning notes and personal progress records
+docs/
+
+# Optional local notes
+frontend/README.md
+tests/README.md

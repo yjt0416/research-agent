@@ -1,0 +1,17 @@
+fastapi
+uvicorn[standard]
+python-dotenv
+openai
+pydantic
+httpx
+pytest
+pypdf
+python-docx
+python-multipart
+posthog==3.6.6
+sentence-transformers
+langchain
+langchain-deepseek
+langchain-chroma
+langchain-huggingface
+langchain-text-splitters

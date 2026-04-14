@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Research Agent Copilot</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --bg-accent: #edf2ff;
+      --panel: rgba(255, 255, 255, 0.82);
+      --panel-strong: #ffffff;
+      --line: rgba(15, 23, 42, 0.08);
+      --line-strong: rgba(15, 23, 42, 0.14);
+      --text: #182230;
+      --muted: #607086;
+      --assistant: #ffffff;
+      --user: linear-gradient(135deg, #2563eb, #1d4ed8);
+      --accent: #2563eb;
+      --accent-soft: rgba(37, 99, 235, 0.08);
+      --success: #0f766e;
+      --shadow: 0 24px 80px rgba(15, 23, 42, 0.10);
+      --radius-lg: 26px;
+      --radius-md: 18px;
+      --radius-sm: 14px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(37, 99, 235, 0.12), transparent 28%),
+        radial-gradient(circle at top right, rgba(14, 165, 233, 0.10), transparent 22%),
+        linear-gradient(180deg, var(--bg-accent) 0%, var(--bg) 100%);
+    }
+
+    .app-shell {
+      min-height: 100%;
+      display: flex;
+      justify-content: center;
+      padding: 22px;
+    }
+
+    .app {
+      width: min(1100px, 100%);
+      min-height: calc(100vh - 44px);
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      background: var(--panel);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.65);
+      border-radius: 32px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 18px 22px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.72);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, #1d4ed8, #38bdf8);
+      color: white;
+      font-size: 18px;
+      font-weight: 800;
+      box-shadow: 0 12px 30px rgba(37, 99, 235, 0.25);
+    }
+
+    .brand-copy {
+      min-width: 0;
+    }
+
+    .brand-title {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-subtitle {
+      margin: 2px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .ghost-button,
+    .primary-button,
+    .attach-button {
+      border: 0;
+      border-radius: 999px;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.16s ease, opacity 0.16s ease, background 0.16s ease;
+    }
+
+    .ghost-button {
+      padding: 10px 14px;
+      background: rgba(15, 23, 42, 0.05);
+      color: var(--text);
+    }
+
+    .ghost-button:hover,
+    .primary-button:hover,
+    .attach-button:hover {
+      transform: translateY(-1px);
+      opacity: 0.96;
+    }
+
+    .conversation {
+      overflow-y: auto;
+      padding: 26px 22px 14px;
+      scroll-behavior: smooth;
+    }
+
+    .conversation-inner {
+      width: min(860px, 100%);
+      margin: 0 auto;
+      display: grid;
+      gap: 18px;
+    }
+
+    .welcome {
+      padding: 28px 26px;
+      border-radius: 28px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.86)),
+        linear-gradient(135deg, rgba(37, 99, 235, 0.08), rgba(14, 165, 233, 0.08));
+      border: 1px solid var(--line);
+    }
+
+    .welcome h1 {
+      margin: 0 0 10px;
+      font-size: clamp(28px, 4vw, 42px);
+      letter-spacing: -0.04em;
+    }
+
+    .welcome p {
+      margin: 0;
+      max-width: 700px;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .suggestions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .suggestion-chip {
+      border: 1px solid rgba(37, 99, 235, 0.16);
+      background: rgba(37, 99, 235, 0.06);
+      color: #21426d;
+      border-radius: 999px;
+      padding: 10px 14px;
+      font: inherit;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .message-row {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+
+    .message-row.user {
+      justify-content: flex-end;
+    }
+
+    .avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .avatar.assistant {
+      background: linear-gradient(135deg, #0f172a, #334155);
+      color: white;
+    }
+
+    .avatar.user {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: white;
+    }
+
+    .message-card {
+      max-width: min(100%, 760px);
+      padding: 16px 18px;
+      border-radius: 24px;
+      border: 1px solid var(--line);
+      background: var(--assistant);
+      box-shadow: 0 12px 35px rgba(15, 23, 42, 0.05);
+    }
+
+    .message-row.user .message-card {
+      color: white;
+      border: 0;
+      background: var(--user);
+      box-shadow: 0 14px 34px rgba(37, 99, 235, 0.22);
+    }
+
+    .message-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .message-row.user .message-meta {
+      color: rgba(255, 255, 255, 0.82);
+    }
+
+    .message-content {
+      font-size: 15px;
+      line-height: 1.78;
+      word-break: break-word;
+    }
+
+    .message-content p {
+      margin: 0 0 12px;
+    }
+
+    .message-content p:last-child {
+      margin-bottom: 0;
+    }
+
+    .message-content ul {
+      margin: 0 0 12px;
+      padding-left: 20px;
+    }
+
+    .message-content li + li {
+      margin-top: 6px;
+    }
+
+    .message-content pre {
+      margin: 14px 0;
+      padding: 14px 16px;
+      overflow: auto;
+      border-radius: 16px;
+      background: #0f172a;
+      color: #e2e8f0;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .message-content code {
+      font-family: Consolas, "SFMono-Regular", Menlo, Monaco, monospace;
+    }
+
+    .message-content :not(pre) > code {
+      padding: 0.15em 0.45em;
+      border-radius: 8px;
+      background: rgba(15, 23, 42, 0.06);
+      color: #0f172a;
+    }
+
+    .message-row.user .message-content :not(pre) > code {
+      background: rgba(255, 255, 255, 0.18);
+      color: white;
+    }
+
+    .artifact-list,
+    .source-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .chip-link,
+    .chip-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 34px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .chip-link {
+      text-decoration: none;
+      color: var(--accent);
+      background: var(--accent-soft);
+      border: 1px solid rgba(37, 99, 235, 0.14);
+    }
+
+    .chip-label {
+      color: var(--muted);
+      background: rgba(15, 23, 42, 0.04);
+      border: 1px solid rgba(15, 23, 42, 0.06);
+    }
+
+    .confirmation-box {
+      margin-top: 14px;
+      padding: 14px;
+      border-radius: 18px;
+      background: rgba(245, 158, 11, 0.08);
+      border: 1px solid rgba(245, 158, 11, 0.18);
+    }
+
+    .confirmation-box h3 {
+      margin: 0 0 8px;
+      font-size: 14px;
+    }
+
+    .confirmation-box p {
+      margin: 0;
+      color: #7c5706;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .confirmation-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .primary-button {
+      padding: 10px 16px;
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: white;
+    }
+
+    .secondary-button {
+      padding: 10px 16px;
+      border: 0;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.08);
+      color: var(--text);
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .composer-wrap {
+      border-top: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.76);
+      padding: 18px 18px 22px;
+    }
+
+    .composer {
+      width: min(860px, 100%);
+      margin: 0 auto;
+      background: var(--panel-strong);
+      border: 1px solid var(--line-strong);
+      border-radius: 28px;
+      padding: 14px;
+      box-shadow: 0 16px 36px rgba(15, 23, 42, 0.08);
+    }
+
+    .upload-status {
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+      min-height: 20px;
+    }
+
+    .composer textarea {
+      width: 100%;
+      min-height: 64px;
+      max-height: 220px;
+      resize: none;
+      border: 0;
+      outline: none;
+      background: transparent;
+      color: var(--text);
+      font: inherit;
+      font-size: 16px;
+      line-height: 1.6;
+      padding: 6px 4px 10px;
+    }
+
+    .composer-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .composer-left,
+    .composer-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .attach-button {
+      padding: 10px 14px;
+      background: rgba(15, 23, 42, 0.05);
+      color: var(--text);
+    }
+
+    .compose-hint {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .status-inline {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .typing-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: pulse 1s infinite ease-in-out;
+    }
+
+    details.settings {
+      width: min(860px, 100%);
+      margin: 12px auto 0;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.66);
+      overflow: hidden;
+    }
+
+    details.settings summary {
+      padding: 12px 16px;
+      cursor: pointer;
+      color: var(--muted);
+      font-size: 13px;
+      user-select: none;
+    }
+
+    .settings-grid {
+      padding: 0 16px 16px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .settings-grid label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .settings-grid input,
+    .settings-grid select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 10px 12px;
+      background: white;
+      color: var(--text);
+      font: inherit;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.3; transform: scale(0.9); }
+      50% { opacity: 1; transform: scale(1); }
+    }
+
+    @media (max-width: 720px) {
+      .app-shell {
+        padding: 0;
+      }
+
+      .app {
+        border-radius: 0;
+        min-height: 100vh;
+      }
+
+      .topbar,
+      .conversation,
+      .composer-wrap {
+        padding-left: 14px;
+        padding-right: 14px;
+      }
+
+      .message-card {
+        max-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <div class="app">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-mark">RA</div>
+          <div class="brand-copy">
+            <h1 class="brand-title">Research Agent Copilot</h1>
+            <p class="brand-subtitle">上传资料、提问、生成总结，像对话一样完成工作流</p>
+          </div>
+        </div>
+        <div class="top-actions">
+          <button class="ghost-button" id="new-chat-button" type="button">新对话</button>
+        </div>
+      </header>
+
+      <main class="conversation" id="conversation">
+        <div class="conversation-inner" id="conversation-inner">
+          <section class="welcome" id="welcome-panel">
+            <h1>今天想让它帮你完成什么？</h1>
+            <p>
+              你可以像平时聊天一样直接输入问题。上传资料后，它会自动切到检索问答；
+              如果需要读文件、运行 Python、生成报告或下载文件，也会按上下文自动处理。
+            </p>
+            <div class="suggestions">
+              <button class="suggestion-chip" type="button" data-prompt="请根据已上传资料总结 RAG 的核心作用，并给出关键引用">总结已上传资料</button>
+              <button class="suggestion-chip" type="button" data-prompt="请读取文件 `README.md` 并用三句话概括项目">读取项目文件</button>
+              <button class="suggestion-chip" type="button" data-prompt="请运行这段 Python 代码 ```python&#10;total = sum([3, 5, 8])&#10;print(total)&#10;``` 并解释结果">运行 Python 代码</button>
+              <button class="suggestion-chip" type="button" data-prompt="请根据文档生成一份简短实验总结，并输出成 Markdown">生成 Markdown 总结</button>
+            </div>
+          </section>
+        </div>
+      </main>
+
+      <footer class="composer-wrap">
+        <div class="composer">
+          <p class="upload-status" id="upload-status">支持上传 TXT / PDF / DOCX，上传后会自动进入知识库。</p>
+          <textarea
+            id="composer-input"
+            placeholder="给 Research Agent Copilot 发送消息..."
+            rows="1"
+          ></textarea>
+          <div class="composer-actions">
+            <div class="composer-left">
+              <input id="upload-file" type="file" accept=".txt,.pdf,.docx" />
+              <button class="attach-button" id="upload-button" type="button">上传资料</button>
+              <span class="compose-hint">Enter 发送，Shift + Enter 换行</span>
+            </div>
+            <div class="composer-right">
+              <span class="status-inline" id="composer-status"></span>
+              <button class="primary-button" id="send-button" type="button">发送</button>
+            </div>
+          </div>
+        </div>
+
+        <details class="settings">
+          <summary>高级设置</summary>
+          <div class="settings-grid">
+            <div>
+              <label for="api-base">API 地址</label>
+              <input id="api-base" placeholder="例如：http://127.0.0.1:8000" />
+            </div>
+            <div>
+              <label for="confirm-before-tools">工具执行前需要人工确认</label>
+              <select id="confirm-before-tools">
+                <option value="false">关闭</option>
+                <option value="true">开启</option>
+              </select>
+            </div>
+          </div>
+        </details>
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    const FALLBACK_API_BASE = "http://127.0.0.1:8000";
+    const STORAGE_KEYS = {
+      sessionId: "research-agent.session-id",
+      userId: "research-agent.user-id",
+      apiBase: "research-agent.api-base",
+      confirmBeforeTools: "research-agent.confirm-before-tools"
+    };
+
+    const state = {
+      sessionId: "",
+      userId: "",
+      isBusy: false,
+      uploadedFiles: []
+    };
+
+    const conversationInner = document.getElementById("conversation-inner");
+    const conversation = document.getElementById("conversation");
+    const composerInput = document.getElementById("composer-input");
+    const sendButton = document.getElementById("send-button");
+    const uploadButton = document.getElementById("upload-button");
+    const uploadFileInput = document.getElementById("upload-file");
+    const uploadStatus = document.getElementById("upload-status");
+    const composerStatus = document.getElementById("composer-status");
+    const apiBaseInput = document.getElementById("api-base");
+    const confirmBeforeTools = document.getElementById("confirm-before-tools");
+    const welcomePanel = document.getElementById("welcome-panel");
+    const newChatButton = document.getElementById("new-chat-button");
+
+    function detectApiBase() {
+      if (window.location.protocol === "http:" || window.location.protocol === "https:") {
+        return window.location.origin;
+      }
+      return FALLBACK_API_BASE;
+    }
+
+    function generateId(prefix) {
+      return `${prefix}-${Math.random().toString(36).slice(2, 10)}`;
+    }
+
+    function escapeHtml(text) {
+      return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function formatInline(text) {
+      return escapeHtml(text).replace(/`([^`]+)`/g, "<code>$1</code>");
+    }
+
+    function renderMarkdown(text) {
+      const normalized = String(text || "").replace(/\r\n/g, "\n");
+      const codeBlocks = [];
+      const tokenized = normalized.replace(/```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g, (_, language, code) => {
+        const token = `__CODE_BLOCK_${codeBlocks.length}__`;
+        codeBlocks.push(
+          `<pre><code class="language-${escapeHtml(language || "plain")}">${escapeHtml(code.trim())}</code></pre>`
+        );
+        return token;
+      });
+
+      const blocks = tokenized.split(/\n{2,}/).map((part) => part.trim()).filter(Boolean);
+      const html = blocks.map((block) => {
+        if (/^[-*]\s+/m.test(block)) {
+          const items = block.split("\n").map((line) => line.trim()).filter(Boolean);
+          if (items.every((item) => /^[-*]\s+/.test(item))) {
+            return `<ul>${items.map((item) => `<li>${formatInline(item.replace(/^[-*]\s+/, ""))}</li>`).join("")}</ul>`;
+          }
+        }
+
+        if (/^#{1,3}\s+/.test(block)) {
+          const level = Math.min(3, block.match(/^#+/)[0].length);
+          const content = block.replace(/^#{1,3}\s+/, "");
+          return `<h${level}>${formatInline(content)}</h${level}>`;
+        }
+
+        return `<p>${formatInline(block).replace(/\n/g, "<br>")}</p>`;
+      }).join("");
+
+      return codeBlocks.reduce((result, codeHtml, index) => {
+        return result.replace(`__CODE_BLOCK_${index}__`, codeHtml);
+      }, html);
+    }
+
+    function scrollToBottom() {
+      requestAnimationFrame(() => {
+        conversation.scrollTop = conversation.scrollHeight;
+      });
+    }
+
+    function setBusy(isBusy, label = "") {
+      state.isBusy = isBusy;
+      sendButton.disabled = isBusy;
+      uploadButton.disabled = isBusy;
+      composerInput.disabled = isBusy;
+
+      if (isBusy) {
+        composerStatus.innerHTML = `<span class="typing-dot"></span>${label || "正在生成中..."}`;
+      } else {
+        composerStatus.textContent = "";
+      }
+    }
+
+    function getApiBase() {
+      return (apiBaseInput.value.trim() || detectApiBase()).replace(/\/+$/, "");
+    }
+
+    function buildUrl(path) {
+      return `${getApiBase()}${path.startsWith("/") ? path : `/${path}`}`;
+    }
+
+    function hideWelcome() {
+      if (welcomePanel) {
+        welcomePanel.style.display = "none";
+      }
+    }
+
+    function createMessageRow(role, title, content, extra = {}) {
+      hideWelcome();
+
+      const row = document.createElement("section");
+      row.className = `message-row ${role}`;
+
+      const avatar = document.createElement("div");
+      avatar.className = `avatar ${role === "user" ? "user" : "assistant"}`;
+      avatar.textContent = role === "user" ? "你" : "AI";
+
+      const card = document.createElement("div");
+      card.className = "message-card";
+
+      const meta = document.createElement("div");
+      meta.className = "message-meta";
+      meta.innerHTML = `<span>${title}</span><span>${extra.meta || ""}</span>`;
+
+      const body = document.createElement("div");
+      body.className = "message-content";
+      body.innerHTML = renderMarkdown(content);
+
+      card.appendChild(meta);
+      card.appendChild(body);
+
+      if (extra.sources && extra.sources.length) {
+        const sourceList = document.createElement("div");
+        sourceList.className = "source-list";
+        extra.sources.forEach((source) => {
+          const chip = document.createElement("span");
+          chip.className = "chip-label";
+          chip.textContent = `${source.filename} · chunk ${source.chunk_index}`;
+          sourceList.appendChild(chip);
+        });
+        card.appendChild(sourceList);
+      }
+
+      if (extra.artifacts && extra.artifacts.length) {
+        const artifactList = document.createElement("div");
+        artifactList.className = "artifact-list";
+        extra.artifacts.forEach((artifact) => {
+          const link = document.createElement("a");
+          link.className = "chip-link";
+          link.href = buildUrl(artifact.download_url);
+          link.target = "_blank";
+          link.rel = "noopener noreferrer";
+          link.textContent = `下载 ${artifact.filename}`;
+          artifactList.appendChild(link);
+        });
+        card.appendChild(artifactList);
+      }
+
+      if (extra.confirmation) {
+        const confirmBox = document.createElement("div");
+        confirmBox.className = "confirmation-box";
+        confirmBox.innerHTML = `
+          <h3>等待人工确认</h3>
+          <p>${escapeHtml(extra.confirmation.summary || "这一步需要确认后继续执行。")}</p>
+        `;
+
+        const actions = document.createElement("div");
+        actions.className = "confirmation-actions";
+
+        const approveButton = document.createElement("button");
+        approveButton.className = "primary-button";
+        approveButton.type = "button";
+        approveButton.textContent = "批准执行";
+        approveButton.addEventListener("click", () => handleConfirmation(extra.confirmation.token, "approve"));
+
+        const cancelButton = document.createElement("button");
+        cancelButton.className = "secondary-button";
+        cancelButton.type = "button";
+        cancelButton.textContent = "取消执行";
+        cancelButton.addEventListener("click", () => handleConfirmation(extra.confirmation.token, "cancel"));
+
+        actions.appendChild(approveButton);
+        actions.appendChild(cancelButton);
+        confirmBox.appendChild(actions);
+        card.appendChild(confirmBox);
+      }
+
+      if (role === "user") {
+        row.appendChild(card);
+        row.appendChild(avatar);
+      } else {
+        row.appendChild(avatar);
+        row.appendChild(card);
+      }
+
+      conversationInner.appendChild(row);
+      scrollToBottom();
+      return { row, card, body, meta };
+    }
+
+    function addUserMessage(content) {
+      createMessageRow("user", "你", content);
+    }
+
+    function addAssistantMessage(content, payload = {}) {
+      return createMessageRow("assistant", "Research Agent Copilot", content, {
+        meta: payload.route ? `模式：${payload.route}` : "",
+        sources: payload.sources || [],
+        artifacts: payload.artifacts || [],
+        confirmation: payload.confirmation || null
+      });
+    }
+
+    function addSystemNotice(content) {
+      createMessageRow("assistant", "系统提示", content);
+    }
+
+    function createPendingMessage() {
+      return createMessageRow("assistant", "Research Agent Copilot", "正在思考中...", {
+        meta: "处理中"
+      });
+    }
+
+    async function parseResponse(response) {
+      const text = await response.text();
+      if (!text) {
+        return { data: null, text: "" };
+      }
+
+      try {
+        return { data: JSON.parse(text), text };
+      } catch {
+        return { data: null, text };
+      }
+    }
+
+    async function postJson(path, payload) {
+      const response = await fetch(buildUrl(path), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      const { data, text } = await parseResponse(response);
+      if (!response.ok) {
+        const detail = data && data.detail ? data.detail : text || `HTTP ${response.status}`;
+        throw new Error(String(detail));
+      }
+      return data;
+    }
+
+    async function sendMessage() {
+      const message = composerInput.value.trim();
+      if (!message || state.isBusy) {
+        return;
+      }
+
+      addUserMessage(message);
+      composerInput.value = "";
+      autoResizeComposer();
+      setBusy(true, "正在生成回复...");
+      const pending = createPendingMessage();
+
+      try {
+        const data = await postJson("/agent/chat", {
+          message,
+          session_id: state.sessionId,
+          user_id: state.userId,
+          mode: "auto",
+          require_confirmation: confirmBeforeTools.value === "true"
+        });
+
+        pending.row.remove();
+        addAssistantMessage(data.answer || "(空响应)", data);
+      } catch (error) {
+        pending.row.remove();
+        addSystemNotice(`请求失败：${String(error)}`);
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    async function handleConfirmation(token, action) {
+      if (state.isBusy) {
+        return;
+      }
+
+      setBusy(true, action === "approve" ? "正在执行确认后的操作..." : "正在取消...");
+      const pending = createPendingMessage();
+
+      try {
+        const data = await postJson(`/agent/confirm/${token}`, { action });
+        pending.row.remove();
+        addAssistantMessage(data.answer || "(空响应)", data);
+      } catch (error) {
+        pending.row.remove();
+        addSystemNotice(`确认失败：${String(error)}`);
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    async function uploadDocument() {
+      const file = uploadFileInput.files && uploadFileInput.files[0];
+      if (!file || state.isBusy) {
+        return;
+      }
+
+      setBusy(true, "正在上传资料...");
+      uploadStatus.textContent = `正在上传：${file.name}`;
+
+      try {
+        const formData = new FormData();
+        formData.append("file", file);
+        const response = await fetch(buildUrl("/documents/upload"), {
+          method: "POST",
+          body: formData
+        });
+        const { data, text } = await parseResponse(response);
+        if (!response.ok) {
+          throw new Error((data && data.detail) || text || `HTTP ${response.status}`);
+        }
+
+        state.uploadedFiles.push(data.filename);
+        uploadStatus.textContent = `已上传 ${data.filename}，切分为 ${data.chunk_count} 个片段并写入知识库。`;
+        addSystemNotice(`资料已上传：\`${data.filename}\`，现在可以直接提问它的内容了。`);
+        uploadFileInput.value = "";
+      } catch (error) {
+        uploadStatus.textContent = `上传失败：${String(error)}`;
+        addSystemNotice(`上传失败：${String(error)}`);
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    function autoResizeComposer() {
+      composerInput.style.height = "auto";
+      composerInput.style.height = `${Math.min(composerInput.scrollHeight, 220)}px`;
+    }
+
+    function resetConversation() {
+      state.sessionId = generateId("session");
+      localStorage.setItem(STORAGE_KEYS.sessionId, state.sessionId);
+      conversationInner.innerHTML = "";
+      if (welcomePanel) {
+        welcomePanel.style.display = "";
+        conversationInner.appendChild(welcomePanel);
+      }
+      uploadStatus.textContent = "支持上传 TXT / PDF / DOCX，上传后会自动进入知识库。";
+      scrollToBottom();
+    }
+
+    function initializeIdentity() {
+      state.sessionId = localStorage.getItem(STORAGE_KEYS.sessionId) || generateId("session");
+      state.userId = localStorage.getItem(STORAGE_KEYS.userId) || generateId("user");
+      localStorage.setItem(STORAGE_KEYS.sessionId, state.sessionId);
+      localStorage.setItem(STORAGE_KEYS.userId, state.userId);
+    }
+
+    function initializeSettings() {
+      apiBaseInput.value = localStorage.getItem(STORAGE_KEYS.apiBase) || detectApiBase();
+      confirmBeforeTools.value = localStorage.getItem(STORAGE_KEYS.confirmBeforeTools) || "false";
+
+      apiBaseInput.addEventListener("change", () => {
+        localStorage.setItem(STORAGE_KEYS.apiBase, apiBaseInput.value.trim());
+      });
+
+      confirmBeforeTools.addEventListener("change", () => {
+        localStorage.setItem(STORAGE_KEYS.confirmBeforeTools, confirmBeforeTools.value);
+      });
+    }
+
+    document.querySelectorAll(".suggestion-chip").forEach((button) => {
+      button.addEventListener("click", () => {
+        composerInput.value = button.dataset.prompt || "";
+        composerInput.focus();
+        autoResizeComposer();
+      });
+    });
+
+    composerInput.addEventListener("input", autoResizeComposer);
+    composerInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        sendMessage();
+      }
+    });
+
+    sendButton.addEventListener("click", sendMessage);
+    uploadButton.addEventListener("click", () => uploadFileInput.click());
+    uploadFileInput.addEventListener("change", uploadDocument);
+    newChatButton.addEventListener("click", resetConversation);
+
+    initializeIdentity();
+    initializeSettings();
+    autoResizeComposer();
+  </script>
+</body>
+</html>
