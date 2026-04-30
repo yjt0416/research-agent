@@ -118,10 +118,6 @@ research-agent/
 |   `-- test_api.py
 |-- assets/
 |   `-- ui-screenshot.png
-|-- showcase/
-|   |-- demo-script.md
-|   |-- interview-talk-tracks.md
-|   `-- resume-bullets.md
 |-- CONTRIBUTING.md
 |-- LICENSE
 `-- README.md
@@ -240,21 +236,6 @@ The workflow will:
 - retrieve formulas and simulation parameters
 - generate and execute a standalone Python reproduction script
 - return downloadable figures, metrics JSON, Markdown report, and a ZIP bundle
-
-## Demo Plan
-
-If you want to record a short project demo, use this order:
-
-1. Show the chat homepage and upload a TXT or PDF document.
-2. Ask a grounded question and point out the cited sources.
-3. Trigger a guarded Python task and explain the approval step.
-4. Run a research reproduction request and download the generated report or ZIP bundle.
-
-Ready-to-use speaking notes and screen-recording steps are available in:
-
-- [showcase/demo-script.md](showcase/demo-script.md)
-- [showcase/interview-talk-tracks.md](showcase/interview-talk-tracks.md)
-- [showcase/resume-bullets.md](showcase/resume-bullets.md)
 
 ## Development
 
