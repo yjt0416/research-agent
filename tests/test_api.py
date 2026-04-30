@@ -84,6 +84,23 @@ def test_upload_document_endpoint(monkeypatch, tmp_path) -> None:
     }
 
 
+def test_ingest_document_by_path_endpoint(monkeypatch) -> None:
+    def fake_ingest_existing_document(path: str) -> tuple[str, str, int]:
+        assert path == "D:/papers/demo.pdf"
+        return "paper-demo", "copied_demo.pdf", 12
+
+    monkeypatch.setattr("app.main.ingest_existing_document", fake_ingest_existing_document)
+
+    response = client.post("/documents/ingest-path", json={"path": "D:/papers/demo.pdf"})
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "document_id": "paper-demo",
+        "filename": "copied_demo.pdf",
+        "chunk_count": 12,
+    }
+
+
 def test_rag_chat_endpoint(monkeypatch) -> None:
     def fake_answer_with_rag(user_message: str, history: list) -> tuple[str, str, list[dict]]:
         assert user_message == "RAG 有什么作用？"
@@ -164,6 +181,48 @@ def test_agent_chat_completed_endpoint(monkeypatch) -> None:
 
     assert response.status_code == 200
     assert response.json()["status"] == "completed"
+
+
+def test_agent_chat_research_mode_with_document_paths(monkeypatch) -> None:
+    def fake_run_agent_chat(
+        message: str,
+        session_id: str,
+        user_id: str | None,
+        mode: str,
+        require_confirmation: bool,
+        document_paths: list[str],
+    ) -> AgentChatResponse:
+        assert mode == "research"
+        assert document_paths == ["D:/papers/demo.pdf"]
+        return AgentChatResponse(
+            answer="已完成论文复现。",
+            model="deepseek-v4-pro",
+            route="research",
+            session_id=session_id,
+            sources=[],
+            short_term_memory_size=2,
+            applied_preferences={},
+            artifacts=[],
+            status="completed",
+            confirmation=None,
+        )
+
+    monkeypatch.setattr("app.main.run_agent_chat", fake_run_agent_chat)
+
+    response = client.post(
+        "/agent/chat",
+        json={
+            "message": "请复现这篇论文",
+            "session_id": "session-research",
+            "user_id": "user-research",
+            "mode": "research",
+            "require_confirmation": False,
+            "document_paths": ["D:/papers/demo.pdf"],
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json()["route"] == "research"
 
 
 def test_agent_chat_awaiting_confirmation_endpoint(monkeypatch) -> None:

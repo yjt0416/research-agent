@@ -22,6 +22,24 @@ class ArtifactItem(BaseModel):
     download_url: str
 
 
+class PlanStep(BaseModel):
+    title: str
+    detail: str = ""
+    status: Literal["pending", "completed", "skipped"] = "pending"
+
+
+class WorkflowTraceItem(BaseModel):
+    node: str
+    summary: str
+
+
+class IngestedDocumentItem(BaseModel):
+    document_id: str
+    filename: str
+    source_path: str
+    chunk_count: int
+
+
 class ChatResponse(BaseModel):
     answer: str
     model: str
@@ -67,14 +85,15 @@ class AgentChatRequest(BaseModel):
     message: str = Field(..., min_length=1, max_length=8000)
     session_id: str = Field(..., min_length=1, max_length=100)
     user_id: str | None = Field(default=None, max_length=100)
-    mode: Literal["auto", "chat", "rag", "report", "tool"] = "auto"
+    mode: Literal["auto", "chat", "rag", "report", "tool", "research"] = "auto"
     require_confirmation: bool = False
+    document_paths: list[str] = Field(default_factory=list)
 
 
 class AgentChatResponse(BaseModel):
     answer: str
     model: str
-    route: Literal["chat", "rag", "report", "tool"]
+    route: Literal["chat", "rag", "report", "tool", "research"]
     session_id: str
     sources: list[SourceItem] = Field(default_factory=list)
     short_term_memory_size: int
@@ -82,6 +101,9 @@ class AgentChatResponse(BaseModel):
     artifacts: list[ArtifactItem] = Field(default_factory=list)
     status: Literal["completed", "awaiting_confirmation", "cancelled"] = "completed"
     confirmation: ConfirmationItem | None = None
+    plan_steps: list[PlanStep] = Field(default_factory=list)
+    workflow_trace: list[WorkflowTraceItem] = Field(default_factory=list)
+    ingested_documents: list[IngestedDocumentItem] = Field(default_factory=list)
 
 
 class PreferenceUpdateRequest(BaseModel):
@@ -100,6 +122,10 @@ class FileReadRequest(BaseModel):
 class FileReadResponse(BaseModel):
     path: str
     content: str
+
+
+class DocumentPathIngestRequest(BaseModel):
+    path: str = Field(..., min_length=1, max_length=500)
 
 
 class PythonToolRequest(BaseModel):

@@ -18,7 +18,7 @@ class Settings:
     deepseek_base_url: str = field(
         default_factory=lambda: os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
     )
-    model_name: str = field(default_factory=lambda: os.getenv("MODEL_NAME", "deepseek-chat"))
+    model_name: str = field(default_factory=lambda: os.getenv("MODEL_NAME", "deepseek-v4-pro"))
     system_prompt: str = field(
         default_factory=lambda: os.getenv(
             "SYSTEM_PROMPT",
@@ -62,6 +62,10 @@ class Settings:
     confirmation_ttl_minutes: int = field(
         default_factory=lambda: int(os.getenv("CONFIRMATION_TTL_MINUTES", "30"))
     )
+    graph_reflection_limit: int = field(
+        default_factory=lambda: int(os.getenv("GRAPH_REFLECTION_LIMIT", "1"))
+    )
+    research_plot_dpi: int = field(default_factory=lambda: int(os.getenv("RESEARCH_PLOT_DPI", "180")))
 
 
 @lru_cache

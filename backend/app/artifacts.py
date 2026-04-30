@@ -81,6 +81,10 @@ def _guess_kind(filename: str) -> str:
         return "python"
     if suffix == ".zip":
         return "zip"
+    if suffix in {".png", ".jpg", ".jpeg", ".webp"}:
+        return "image"
+    if suffix == ".json":
+        return "json"
     return "text"
 
 
@@ -132,6 +136,22 @@ def save_text_artifact(
     return save_bytes_artifact(
         filename=filename,
         data=content.encode("utf-8"),
+        session_id=session_id,
+        media_type=media_type,
+        kind=kind,
+    )
+
+
+def save_existing_file_artifact(
+    *,
+    path: Path,
+    session_id: str | None = None,
+    media_type: str | None = None,
+    kind: str | None = None,
+) -> ArtifactItem:
+    return save_bytes_artifact(
+        filename=path.name,
+        data=path.read_bytes(),
         session_id=session_id,
         media_type=media_type,
         kind=kind,

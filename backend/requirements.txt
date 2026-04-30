@@ -10,7 +10,9 @@ python-docx
 python-multipart
 posthog==3.6.6
 sentence-transformers
+matplotlib
 langchain
+langgraph
 langchain-deepseek
 langchain-chroma
 langchain-huggingface

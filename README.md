@@ -24,11 +24,12 @@ It combines:
 ## Highlights
 
 - Single-page frontend designed around a clean chat experience
-- LangChain-centered workflow for chat, RAG, tool routing, and report generation
+- LangGraph StateGraph workflow for intent routing, planning, retrieval, tool routing, code execution, reflection, and reporting
 - Semantic retrieval with multilingual sentence-transformer embeddings and Chroma
 - AST-restricted Python execution for simple, inspectable code tasks
 - Downloadable artifacts that make generated output easy to save and share
 - Structured retries, logging, evaluation utilities, and automated tests
+- Paper reproduction flow that can generate runnable Python, figures, metrics JSON, Markdown reports, and ZIP bundles
 
 ## Architecture
 
@@ -38,12 +39,39 @@ Frontend (chat UI)
     v
 FastAPI backend
     |
-    +-- LangChain workflow orchestration
+    +-- LangGraph workflow orchestration
     +-- RAG pipeline (extract -> chunk -> embed -> retrieve)
     +-- Session memory and user preferences
     +-- Tool execution with confirmation gates
     +-- Artifact generation (md / py / zip)
+    +-- Research reproduction pipeline (paper -> code -> figures -> report)
     +-- Evaluation and logging utilities
+```
+
+### System Diagram
+
+```mermaid
+flowchart LR
+    User["User"] --> UI["Chat UI<br/>frontend/index.html"]
+    UI --> API["FastAPI API"]
+    API --> Graph["LangGraph StateGraph"]
+
+    Graph --> Router["Intent Router"]
+    Router --> Planner["Planner"]
+    Planner --> Retriever["Retriever"]
+    Planner --> ToolRouter["Tool Router"]
+    ToolRouter --> CodeExec["Code Executor"]
+    Planner --> Reflector["Reflector"]
+    Reflector --> Reporter["Reporter"]
+
+    Retriever --> RAG["Chroma + Semantic Embeddings"]
+    CodeExec --> Artifacts["Artifacts<br/>md / py / json / image / zip"]
+    Reporter --> Artifacts
+
+    API --> Memory["Session Memory + Preferences"]
+    API --> Confirm["Human Approval Gate"]
+    Graph --> Repro["Paper Reproduction Pipeline"]
+    Repro --> Artifacts
 ```
 
 ## Tech Stack
@@ -72,6 +100,7 @@ research-agent/
 |   |   |-- memory.py
 |   |   |-- prompts.py
 |   |   |-- rag.py
+|   |   |-- reproduction.py
 |   |   |-- schemas.py
 |   |   `-- tools.py
 |   `-- requirements.txt
@@ -89,6 +118,10 @@ research-agent/
 |   `-- test_api.py
 |-- assets/
 |   `-- ui-screenshot.png
+|-- showcase/
+|   |-- demo-script.md
+|   |-- interview-talk-tracks.md
+|   `-- resume-bullets.md
 |-- CONTRIBUTING.md
 |-- LICENSE
 `-- README.md
@@ -116,7 +149,7 @@ Copy `.env.example` to `.env` and add your DeepSeek API key.
 ```env
 DEEPSEEK_API_KEY=your_api_key_here
 DEEPSEEK_BASE_URL=https://api.deepseek.com
-MODEL_NAME=deepseek-chat
+MODEL_NAME=deepseek-v4-pro
 SYSTEM_PROMPT=You are Research Agent Copilot, a helpful assistant for research and technical documents.
 CHROMA_COLLECTION_NAME=research_docs_semantic_v1
 CHUNK_SIZE=500
@@ -144,8 +177,9 @@ Open:
 | --- | --- |
 | `POST /chat` | Standard chat completion |
 | `POST /documents/upload` | Upload TXT, PDF, or DOCX files into the RAG store |
+| `POST /documents/ingest-path` | Ingest an existing local TXT, PDF, or DOCX file by path |
 | `POST /chat/rag` | Ask questions grounded in uploaded material |
-| `POST /agent/chat` | Unified entry point for chat, retrieval, reports, and tools |
+| `POST /agent/chat` | Unified entry point for chat, retrieval, reports, tools, and research workflows |
 | `POST /agent/confirm/{token}` | Approve or cancel a pending tool action |
 | `POST /tools/read-file` | Read a workspace file |
 | `POST /tools/python` | Run restricted Python code |
@@ -182,6 +216,45 @@ POST /agent/confirm/{token}
   "action": "approve"
 }
 ```
+
+### 3. Paper reproduction workflow
+
+Send a research-mode request with an explicit local paper path:
+
+```json
+{
+  "message": "Please reproduce this paper with runnable Python code and generate a technical report.",
+  "session_id": "paper-repro-demo",
+  "user_id": "research-user",
+  "mode": "research",
+  "document_paths": [
+    "D:/papers/alpha-stable-vlf-paper.pdf"
+  ]
+}
+```
+
+The workflow will:
+
+- ingest the paper into the vector store
+- plan the task with LangGraph nodes
+- retrieve formulas and simulation parameters
+- generate and execute a standalone Python reproduction script
+- return downloadable figures, metrics JSON, Markdown report, and a ZIP bundle
+
+## Demo Plan
+
+If you want to record a short project demo, use this order:
+
+1. Show the chat homepage and upload a TXT or PDF document.
+2. Ask a grounded question and point out the cited sources.
+3. Trigger a guarded Python task and explain the approval step.
+4. Run a research reproduction request and download the generated report or ZIP bundle.
+
+Ready-to-use speaking notes and screen-recording steps are available in:
+
+- [showcase/demo-script.md](showcase/demo-script.md)
+- [showcase/interview-talk-tracks.md](showcase/interview-talk-tracks.md)
+- [showcase/resume-bullets.md](showcase/resume-bullets.md)
 
 ## Development
 

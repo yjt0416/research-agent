@@ -15,13 +15,14 @@ from app.evaluation import summarize_eval_dataset
 from app.llm import chat_with_deepseek
 from app.logging_utils import configure_logging, get_logger
 from app.memory import get_session_history, get_user_preferences, save_user_preferences
-from app.rag import answer_with_rag, ingest_document, save_uploaded_file
+from app.rag import answer_with_rag, ingest_document, ingest_existing_document, save_uploaded_file
 from app.schemas import (
     AgentChatRequest,
     AgentChatResponse,
     ChatRequest,
     ChatResponse,
     ConfirmationDecisionRequest,
+    DocumentPathIngestRequest,
     DocumentUploadResponse,
     EvalDatasetResponse,
     FileReadRequest,
@@ -135,6 +136,23 @@ async def upload_document(file: UploadFile = File(...)) -> DocumentUploadRespons
     )
 
 
+@app.post("/documents/ingest-path", response_model=DocumentUploadResponse)
+def upload_document_by_path(request: DocumentPathIngestRequest) -> DocumentUploadResponse:
+    """Ingest an existing local TXT, PDF, or DOCX file by absolute path."""
+    try:
+        document_id, filename, chunk_count = ingest_existing_document(request.path)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Document ingestion failed: {exc}") from exc
+
+    return DocumentUploadResponse(
+        document_id=document_id,
+        filename=filename,
+        chunk_count=chunk_count,
+    )
+
+
 @app.post("/chat/rag", response_model=RagChatResponse)
 def rag_chat(request: ChatRequest) -> RagChatResponse:
     """Answer a question using retrieved document chunks."""
@@ -185,13 +203,16 @@ def run_python_tool(request: PythonToolRequest) -> PythonToolResponse:
 def agent_chat(request: AgentChatRequest) -> AgentChatResponse:
     """Unified agent endpoint with routing, memory, and optional human confirmation."""
     try:
-        return run_agent_chat(
-            message=request.message,
-            session_id=request.session_id,
-            user_id=request.user_id,
-            mode=request.mode,
-            require_confirmation=request.require_confirmation,
-        )
+        kwargs = {
+            "message": request.message,
+            "session_id": request.session_id,
+            "user_id": request.user_id,
+            "mode": request.mode,
+            "require_confirmation": request.require_confirmation,
+        }
+        if request.document_paths:
+            kwargs["document_paths"] = request.document_paths
+        return run_agent_chat(**kwargs)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:

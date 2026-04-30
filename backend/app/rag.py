@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import shutil
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
@@ -47,7 +48,7 @@ def get_text_splitter() -> RecursiveCharacterTextSplitter:
     return RecursiveCharacterTextSplitter(
         chunk_size=settings.chunk_size,
         chunk_overlap=settings.chunk_overlap,
-        separators=["\n\n", "\n", "。", "！", "？", ". ", " ", ""],
+        separators=["\n\n", "\n", "。", "；", "，", ". ", " ", ""],
     )
 
 
@@ -78,6 +79,27 @@ def save_uploaded_file(filename: str, content: bytes) -> Path:
     target_path = settings.raw_data_dir / unique_name
     target_path.write_bytes(content)
     return target_path
+
+
+def ingest_existing_document(path: str) -> tuple[str, str, int]:
+    source_path = Path(path).expanduser().resolve()
+    if not source_path.exists():
+        raise ValueError(f"Document not found: {source_path}")
+    if not source_path.is_file():
+        raise ValueError("Expected a document file path.")
+
+    extension = source_path.suffix.lower()
+    if extension not in SUPPORTED_EXTENSIONS:
+        supported = ", ".join(sorted(SUPPORTED_EXTENSIONS))
+        raise ValueError(f"Unsupported file type: {extension or 'unknown'}. Use {supported}.")
+
+    settings = get_settings()
+    settings.raw_data_dir.mkdir(parents=True, exist_ok=True)
+    copied_name = f"{uuid4().hex[:8]}_{source_path.name}"
+    copied_path = settings.raw_data_dir / copied_name
+    shutil.copy2(source_path, copied_path)
+    document_id, chunk_count = ingest_document(copied_path)
+    return document_id, copied_path.name, chunk_count
 
 
 def extract_text(file_path: Path) -> str:
@@ -202,6 +224,20 @@ def retrieve_chunks(query: str, top_k: int | None = None) -> list[RetrievedChunk
         )
 
     return chunks
+
+
+def retrieve_chunks_for_queries(queries: list[str], top_k: int | None = None) -> list[RetrievedChunk]:
+    combined: list[RetrievedChunk] = []
+    seen_ids: set[str] = set()
+    for query in queries:
+        if not query.strip():
+            continue
+        for chunk in retrieve_chunks(query, top_k=top_k):
+            if chunk.source_id in seen_ids:
+                continue
+            seen_ids.add(chunk.source_id)
+            combined.append(chunk)
+    return combined
 
 
 def answer_with_rag(user_message: str, history: list[ChatMessage]) -> tuple[str, str, list[SourceItem]]:
